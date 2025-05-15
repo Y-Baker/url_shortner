@@ -2,10 +2,11 @@ const express = require('express');
 const router = express.Router();
 const url_shortner = require("./utils").url_shortner;
 const storage_engine = require("./storage/engine");
+const cache = require('./cache');
 
 const getRouter = async () => {
   const router = express.Router();
-  const database = await storage_engine.GetStorage("sqlite");
+  const database = await storage_engine.GetStorage("mongodb");
 
   const shortner = (url) => {
     const short = url_shortner(url);
@@ -77,10 +78,23 @@ const getRouter = async () => {
   */
   router.get("/:short", async (req, res) => {
     const { short } = req.params;
+
+    if (cache.has(short)) {
+      console.log("CACHE HIT")
+      return res.redirect(cache.get(short))
+
+    }
+
     if (! await database.contains(short)) {
       return res.status(404).json({ mess: "Not found" });
     }
-    res.redirect(await database.get(short));
+    await database.increaseCount(short);
+
+    const re = await database.get(short)
+    cache.set(short, re);
+    console.log("CACHE MISS");
+  
+    res.redirect(re);
   });
 
   /**
@@ -113,7 +127,17 @@ const getRouter = async () => {
     if (! await database.contains(short)) {
       return res.status(404).json({ mess: "Not found" });
     }
-    res.json({ url: await database.get(short) });
+    const re = await database.info(short);
+    res.json({ url: re.longUrl, clicks: re.ClickCounter, last_access: re.LastAccess});
+  });
+
+
+  router.get("/cache/stats", (req, res) => {
+    res.json({
+      size: cache.size,
+      maxSize: cache.max,
+      ttl: cache.ttl
+    });
   });
 
   return router;

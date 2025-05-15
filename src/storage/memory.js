@@ -33,7 +33,7 @@ class MemoryStorage {
   }
 
   contains(url) {
-    return !!this.database[url];
+    return !!this.database[url]; 
   }
 }
 
