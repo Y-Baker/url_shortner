@@ -3,15 +3,19 @@ class MemoryStorage {
     this.database = {};
   }
 
+  init() {
+    this.database = {};
+  }
+
   get(url) {
-    return this.database.get(url);
+    return this.database[url];
   }
 
   save(url, short) {
-    if (this.database[url]) {
+    if (this.database[short]) {
       throw new Error('URL already exists');
     }
-    this.database[url] = short;
+    this.database[short] = url;
   }
 
   delete(url) {
@@ -22,18 +26,16 @@ class MemoryStorage {
   }
 
   update(url, short) {
-    if (!this.database[url]) {
+    if (!this.database[short]) {
       throw new Error('URL not found in database');
     }
-    this.database[url] = short;
+    this.database[short] = url;
   }
 
-  constains(url) {
+  contains(url) {
     return !!this.database[url];
   }
 }
 
 
-module.exports = {
-  MemoryStorage
-}
+module.exports = MemoryStorage;
