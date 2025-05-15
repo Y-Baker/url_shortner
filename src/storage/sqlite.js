@@ -8,11 +8,13 @@ const sequelize = new Sequelize({
 const db = sequelize.define('URL', {
   longUrl: { type: DataTypes.STRING, allowNull: false },
   shortUrl: { type: DataTypes.STRING, allowNull: false, unique: true },
+  ClickCounter: { type: DataTypes.INTEGER, defaultValue: 0 },
+  LastAccess: { type: DataTypes.DATE, defaultValue: Sequelize.NOW },
 });
 
 class SQLiteStorage {
   async init() {
-    await sequelize.sync();
+    await sequelize.sync({ force: true });
   }
 
   async save(longUrl, shortUrl) {
@@ -27,11 +29,21 @@ class SQLiteStorage {
 
   async contains(shortUrl) {
     const result = await db.findOne({ where: { shortUrl } });
-    return !!result.dataValues;
+    return !!result;
   }
 
   async info(shortUrl) {
     return await db.findOne({ where: { shortUrl } });
+  }
+
+  async increaseCount(shortUrl) {
+    const result = await db.findOne({ where: { shortUrl } }); 
+    if (!result) return null;
+
+
+    result.ClickCounter++;
+    result.LastAccess = new Date(); 
+    return await result.save();
   }
 }
 
