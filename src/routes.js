@@ -18,6 +18,33 @@ const getRouter = async () => {
     return short;
   };
 
+  /**
+   * @swagger
+   * /shorten:
+   *   post:
+   *     summary: Shorten a URL
+   *     description: Takes a long URL and returns a shortened version.
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               url:
+   *                 type: string
+   *                 example: "https://example.com"
+   *     responses:
+   *       200:
+   *         description: Shortened URL
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 url:
+   *                   type: string
+   */
   router.post("/shorten", (req, res) => {
     const { url } = req.body;
     if (!url) {
@@ -30,6 +57,24 @@ const getRouter = async () => {
     res.json({ url: short });
   });
 
+  /**
+  * @swagger
+  * /{short}:
+  *   get:
+  *     summary: Redirect to the original URL
+  *     description: Redirects the shortened URL to the original long URL.
+  *     parameters:
+  *       - in: path
+  *         name: short
+  *         required: true
+  *         schema:
+  *           type: string
+  *     responses:
+  *       302:
+  *         description: Redirects to the original URL
+  *       404:
+  *         description: URL not found
+  */
   router.get("/:short", async (req, res) => {
     const { short } = req.params;
     if (! await database.contains(short)) {
@@ -38,6 +83,31 @@ const getRouter = async () => {
     res.redirect(await database.get(short));
   });
 
+  /**
+  * @swagger
+  * /{short}/info:
+  *   get:
+  *     summary: Get original URL info
+  *     description: Returns the original URL associated with a short URL.
+  *     parameters:
+  *       - in: path
+  *         name: short
+  *         required: true
+  *         schema:
+  *           type: string
+  *     responses:
+  *       200:
+  *         description: URL information
+  *         content:
+  *           application/json:
+  *             schema:
+  *               type: object
+  *               properties:
+  *                 url:
+  *                   type: string
+  *       404:
+  *         description: URL not found
+  */
   router.get("/:short/info", async (req, res) => {
     const { short } = req.params;
     if (! await database.contains(short)) {
