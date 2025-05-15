@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const router = express.Router();
 const url_shortner = require("./utils").url_shortner;
@@ -6,7 +7,7 @@ const cache = require('./cache');
 
 const getRouter = async () => {
   const router = express.Router();
-  const database = await storage_engine.GetStorage("mongodb");
+  const database = await storage_engine.GetStorage(process.env.database);
 
   const shortner = (url) => {
     const short = url_shortner(url);
